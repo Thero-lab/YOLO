@@ -17,9 +17,9 @@ UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Load the pre-trained YOLOv8 model (COCO dataset)
-# This model can detect 80 classes, including fruits like apple, banana, orange, broccoli, carrot.
-model = YOLO("yolov8n.pt")
+# Load the highly optimized ONNX YOLOv8 model to save memory
+# This uses 4x less memory than PyTorch and avoids crashing the cloud server.
+model = YOLO("yolov8n.onnx")
 
 @app.route("/", methods=["GET"])
 def home():
