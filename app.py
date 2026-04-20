@@ -1,4 +1,11 @@
 import os
+# Fix for Render/Docker CPU thread freezing
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import uuid
 from flask import Flask, render_template, request, redirect, url_for
 from ultralytics import YOLO
@@ -33,8 +40,8 @@ def predict():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
-        # Perform YOLOv8 Object Detection
-        results = model(filepath)
+        # Perform YOLOv8 Object Detection with reduced image size to save memory
+        results = model(filepath, imgsz=320)
         
         # Save the result image with bounding boxes
         result_filename = "result_" + filename
