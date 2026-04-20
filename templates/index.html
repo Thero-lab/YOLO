@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Vision | Object Detection</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>YOLO Vision</h1>
+            <p>Real-time Object Detection Powered by AI</p>
+        </header>
+
+        <main>
+            <div class="upload-card">
+                <h2><i class="fa-solid fa-cloud-arrow-up"></i> Upload Image</h2>
+                <p>Upload a fruit, vegetable, or any photo to detect objects.</p>
+                <form action="/predict" method="post" enctype="multipart/form-data" id="uploadForm">
+                    <div class="file-input-wrapper">
+                        <input type="file" name="image" id="fileInput" accept="image/*" required>
+                        <label for="fileInput" id="fileLabel">
+                            <i class="fa-regular fa-image"></i>
+                            <span>Choose an image or drag & drop</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <span>Run Detection</span>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                </form>
+            </div>
+
+            {% if result_image %}
+            <div class="results-section">
+                <h2><i class="fa-solid fa-microchip"></i> Detection Results</h2>
+
+                <div class="image-showcase">
+                    <div class="image-box">
+                        <h3>Original Image</h3>
+                        <img src="{{ url_for('static', filename='uploads/' + original_image) }}" alt="Original Image">
+                    </div>
+                    <div class="image-box">
+                        <h3>Detected Objects</h3>
+                        <img src="{{ url_for('static', filename='uploads/' + result_image) }}" alt="Result Image">
+                    </div>
+                </div>
+
+                <div class="detection-stats">
+                    <h3>Identified Objects</h3>
+                    {% if detected_objects %}
+                    <ul class="stats-list">
+                        {% for obj in detected_objects %}
+                        <li>
+                            <span class="label-name">{{ obj.name | capitalize }}</span>
+                            <div class="confidence-bar-wrapper">
+                                <div class="confidence-bar" style="width: {{ obj.confidence }}%;"></div>
+                            </div>
+                            <span class="label-conf">{{ obj.confidence }}%</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="no-objects">No objects detected.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </main>
+
+        <footer>
+            <p>Group Performance Task #3 &bull; Ultralytics YOLOv8 & Flask</p>
+        </footer>
+    </div>
+
+    <script>
+        // Custom File Input Logic
+        const fileInputWrapper = document.querySelector('.file-input-wrapper');
+        const fileInput = document.getElementById('fileInput');
+        const fileLabelSpan = document.querySelector('#fileLabel span');
+        const uploadForm = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        fileInput.addEventListener('change', function (e) {
+            if (this.files && this.files.length > 0) {
+                fileLabelSpan.textContent = this.files[0].name;
+                fileLabelSpan.style.color = '#fff';
+            } else {
+                fileLabelSpan.textContent = 'Choose an image or drag & drop';
+                fileLabelSpan.style.color = '#a0aec0';
+            }
+        });
+
+        // Drag and Drop Logic
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, () => {
+                fileInputWrapper.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                fileInputWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, () => {
+                fileInputWrapper.style.borderColor = '';
+                fileInputWrapper.style.backgroundColor = '';
+            }, false);
+        });
+
+        fileInputWrapper.addEventListener('drop', function (e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+
+            if (files && files.length > 0) {
+                fileInput.files = files; // Assign files to the input
+                // Manually trigger the change event to update the label
+                let event = new Event('change');
+                fileInput.dispatchEvent(event);
+            }
+        }, false);
+
+        uploadForm.addEventListener('submit', function () {
+            submitBtn.classList.add('loading');
+            submitBtn.querySelector('span').textContent = 'Processing...';
+        });
+    </script>
+</body>
+
+</html>
